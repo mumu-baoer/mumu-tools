@@ -108,7 +108,7 @@
   }
   .tag-btn.kunhuo.sel { background: #c7512e; color: #fff; border-color: #c7512e; font-weight: 700; }
   .tag-btn.guandian.sel { background: #7c5cbf; color: #fff; border-color: #7c5cbf; font-weight: 700; }
-  .tag-btn.sucai.sel { background: #4a8fb5; color: #fff; border-color: #4a8fb5; font-weight: 700; }
+  .tag-btn.fangan.sel { background: #4a8fb5; color: #fff; border-color: #4a8fb5; font-weight: 700; }
 
   .btn {
     display: flex; align-items: center; justify-content: center;
@@ -134,7 +134,7 @@
   }
   .item .item-tag.kunhuo { background: var(--accent-soft); color: var(--accent); }
   .item .item-tag.guandian { background: var(--purple-soft); color: var(--purple); }
-  .item .item-tag.sucai { background: var(--blue-soft); color: var(--blue); }
+  .item .item-tag.fangan { background: var(--blue-soft); color: var(--blue); }
   .item .item-text { font-size: 14px; margin-bottom: 2px; }
   .item .item-meta { font-size: 11px; color: var(--muted); }
 
@@ -148,7 +148,7 @@
   .mini-stat .lbl { font-size: 11px; color: var(--muted); }
   .num.kunhuo { color: var(--accent); }
   .num.guandian { color: var(--purple); }
-  .num.sucai { color: var(--blue); }
+  .num.fangan { color: var(--blue); }
   .num.green { color: var(--green); }
 
   /* toast */
@@ -231,7 +231,7 @@
       <div class="tag-row">
         <button class="tag-btn kunhuo sel" id="fragTagKunhuo" onclick="setFragTag('kunhuo')">困惑</button>
         <button class="tag-btn guandian" id="fragTagGuandian" onclick="setFragTag('guandian')">观点</button>
-        <button class="tag-btn sucai" id="fragTagSucai" onclick="setFragTag('sucai')">素材</button>
+        <button class="tag-btn fangan" id="fragTagSucai" onclick="setFragTag('fangan')">方案</button>
       </div>
     </div>
     <div class="form-group">
@@ -251,7 +251,7 @@
       <div class="num guandian" id="statGuandian">0</div><div class="lbl">观点</div>
     </div>
     <div class="mini-stat">
-      <div class="num sucai" id="statSucai">0</div><div class="lbl">素材</div>
+      <div class="num fangan" id="statSucai">0</div><div class="lbl">方案</div>
     </div>
   </div>
 
@@ -395,7 +395,7 @@ function setFragTag(t) {
     btn.className = 'tag-btn ' + k.toLowerCase() + (k.toLowerCase()===t ? ' sel' : '');
   });
   // 同步更新输入框提示
-  const hints = {kunhuo:'是什么事让我产生了困惑？我到底在纠结什么？',guandian:'原来我怎么想？现在我发现了什么不一样？',sucai:'记录一个触动我的瞬间——一句话、一个画面、一个想法'};
+  const hints = {kunhuo:'是什么事让我产生了困惑？我到底在纠结什么？',guandian:'原来我怎么想？现在我发现了什么不一样？',fangan:'记录一个触动我的瞬间——一句话、一个画面、一个想法'};
   document.getElementById('fragText').placeholder = hints[t];
 }
 
@@ -415,7 +415,7 @@ function saveFragment() {
 function renderFragments() {
   const arr = getItems(FRAG_KEY);
   ['Kunhuo','Guandian','Sucai'].forEach((k,i) => {
-    const tags = ['kunhuo','guandian','sucai'];
+    const tags = ['kunhuo','guandian','fangan'];
     document.getElementById('stat'+k).textContent = arr.filter(f=>f.tag===tags[i]).length;
   });
   const container = document.getElementById('fragList');
@@ -423,7 +423,7 @@ function renderFragments() {
     container.innerHTML = '<div class="empty"><div class="icon">💡</div>还没有碎片，去写第一条吧</div>';
     return;
   }
-  const labels = {kunhuo:'困惑',guandian:'观点',sucai:'素材'};
+  const labels = {kunhuo:'困惑',guandian:'观点',fangan:'方案'};
   container.innerHTML = arr.slice(0,30).map(f => `
     <div class="item" style="position:relative">
       <span class="item-tag ${f.tag}">${labels[f.tag]}</span>
@@ -606,14 +606,14 @@ function genReport() {
 
   const k = frags.filter(f=>f.tag==='kunhuo').length;
   const g = frags.filter(f=>f.tag==='guandian').length;
-  const s = frags.filter(f=>f.tag==='sucai').length;
+  const s = frags.filter(f=>f.tag==='fangan').length;
 
   let html = '<h3>💡 灵感碎片</h3>';
-  html += `<div class="line">本周共记录 <b>${frags.length}</b> 条碎片：困惑 ${k} 条 · 观点 ${g} 条 · 素材 ${s} 条</div>`;
+  html += `<div class="line">本周共记录 <b>${frags.length}</b> 条碎片：困惑 ${k} 条 · 观点 ${g} 条 · 方案 ${s} 条</div>`;
   if (frags.length) {
     html += '<div style="margin-top:6px">';
     frags.slice(0,5).forEach(f => {
-      const labels = {kunhuo:'困惑',guandian:'观点',sucai:'素材'};
+      const labels = {kunhuo:'困惑',guandian:'观点',fangan:'方案'};
       html += `<div style="font-size:12px;color:var(--muted);margin-bottom:2px">· ${labels[f.tag]}：${esc(f.text).substring(0,40)}${f.text.length>40?'...':''}</div>`;
     });
     html += '</div>';
@@ -651,9 +651,9 @@ function genReport() {
   // Build export text
   const periodName = reportMode === 'week' ? '周报' : '月报';
   let exp = `木木${periodName} · ${range.label}\n\n`;
-  exp += `灵感碎片：${frags.length} 条（困惑 ${k} · 观点 ${g} · 素材 ${s}）\n`;
+  exp += `灵感碎片：${frags.length} 条（困惑 ${k} · 观点 ${g} · 方案 ${s}）\n`;
   frags.forEach(f => {
-    const labels = {kunhuo:'困惑',guandian:'观点',sucai:'素材'};
+    const labels = {kunhuo:'困惑',guandian:'观点',fangan:'方案'};
     exp += `  - [${labels[f.tag]}] ${f.text}\n`;
   });
   exp += `\n`;
