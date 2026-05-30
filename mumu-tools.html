@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="木木工具箱">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><rect width='180' height='180' rx='36' fill='%23fdf8f0'/><text x='90' y='110' font-size='80' text-anchor='middle'>🛠️</text></svg>">
+<title>木木工具箱</title>
+<style>
+  :root {
+    --bg: #fdf8f0;
+    --card: #fffef9;
+    --text: #3d3226;
+    --muted: #8b7e6a;
+    --accent: #c7512e;
+    --accent-soft: #f2e0d5;
+    --border: #e8d5c4;
+    --green: #5a8f6b;
+    --green-soft: #e6f0e8;
+    --purple: #7c5cbf;
+    --purple-soft: #ede4f5;
+    --blue: #4a8fb5;
+    --blue-soft: #e0eef5;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding-bottom: 80px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  header {
+    text-align: center;
+    padding: 24px 16px 12px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+  header h1 { font-size: 22px; font-weight: 700; color: var(--accent); }
+  header .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* tabs */
+  .tabs {
+    display: flex;
+    margin: 0 16px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 3px;
+  }
+  .tab {
+    flex: 1;
+    padding: 10px 0;
+    text-align: center;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--muted);
+    font-family: inherit;
+    font-weight: 500;
+  }
+  .tab.active { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+
+  /* pages */
+  .page { display: none; padding: 0 16px; }
+  .page.active { display: block; }
+
+  /* cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 12px;
+  }
+  .card h2 { font-size: 16px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+  .card .desc { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+
+  /* form */
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .form-group label .hint { font-weight: 400; color: var(--muted); font-size: 11px; }
+  .form-group textarea, .form-group input {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px;
+    font-size: 15px; font-family: inherit; background: var(--bg); color: var(--text);
+    -webkit-appearance: none;
+  }
+  .form-group textarea:focus, .form-group input:focus { outline: none; border-color: var(--accent); }
+  .form-group textarea { min-height: 72px; resize: vertical; }
+
+  .tag-row { display: flex; gap: 6px; }
+  .tag-btn {
+    flex: 1; padding: 8px 0; border-radius: 20px; border: 1px solid var(--border);
+    background: var(--card); font-size: 13px; cursor: pointer; text-align: center;
+    font-family: inherit; color: var(--muted);
+  }
+  .tag-btn.kunhuo.sel { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 600; }
+  .tag-btn.guandian.sel { background: var(--purple-soft); color: var(--purple); border-color: var(--purple); font-weight: 600; }
+  .tag-btn.sucai.sel { background: var(--blue-soft); color: var(--blue); border-color: var(--blue); font-weight: 600; }
+
+  .btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; padding: 12px; border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:active { opacity: 0.85; }
+  .btn-ghost {
+    background: transparent; color: var(--muted); border: 1px solid var(--border);
+    font-size: 12px; padding: 8px; margin-top: 6px;
+  }
+  .btn-green { background: var(--green); color: #fff; }
+
+  /* history items */
+  .item {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 8px;
+  }
+  .item .item-tag {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 10px; font-weight: 700; margin-bottom: 4px;
+  }
+  .item .item-tag.kunhuo { background: var(--accent-soft); color: var(--accent); }
+  .item .item-tag.guandian { background: var(--purple-soft); color: var(--purple); }
+  .item .item-tag.sucai { background: var(--blue-soft); color: var(--blue); }
+  .item .item-text { font-size: 14px; margin-bottom: 2px; }
+  .item .item-meta { font-size: 11px; color: var(--muted); }
+
+  /* streaks */
+  .mini-stats { display: flex; gap: 8px; margin-bottom: 12px; }
+  .mini-stat {
+    flex:1; background: var(--card); border:1px solid var(--border);
+    border-radius:10px; padding:10px; text-align:center;
+  }
+  .mini-stat .num { font-size: 22px; font-weight: 700; }
+  .mini-stat .lbl { font-size: 11px; color: var(--muted); }
+  .num.kunhuo { color: var(--accent); }
+  .num.guandian { color: var(--purple); }
+  .num.sucai { color: var(--blue); }
+  .num.green { color: var(--green); }
+
+  /* toast */
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #3d3226; color: #fff; padding: 10px 20px; border-radius: 20px;
+    font-size: 13px; z-index: 100; opacity: 0; transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  /* nav */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto;
+    background: var(--card); border-top: 1px solid var(--border);
+    display: flex; padding: 6px 16px 20px; z-index: 10;
+  }
+  .nav-btn {
+    flex: 1; text-align: center; padding: 8px 0; background: none; border: none;
+    font-size: 12px; cursor: pointer; color: var(--muted); font-family: inherit;
+  }
+  .nav-btn .icon { font-size: 20px; display: block; margin-bottom: 2px; }
+  .nav-btn.active { color: var(--accent); font-weight: 600; }
+
+  /* report */
+  .report-block {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px; margin-bottom: 10px;
+  }
+  .report-block h3 { font-size: 14px; color: var(--accent); margin-bottom: 6px; }
+  .report-block .line { font-size: 13px; line-height: 1.8; }
+  .report-block .line span { color: var(--muted); }
+
+  .empty {
+    text-align: center; padding: 40px 0; color: var(--muted); font-size: 14px;
+  }
+  .empty .icon { font-size: 40px; margin-bottom: 8px; }
+
+  /* export textarea */
+  .export-box {
+    width: 100%; min-height: 120px; padding: 10px; border: 1px solid var(--border);
+    border-radius: 10px; font-size: 12px; font-family: monospace; background: var(--bg);
+    color: var(--text); margin-bottom: 8px; display: none;
+  }
+  .export-box.show { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>木木工具箱</h1>
+  <div class="sub">灵感碎片 · 日拱一卒</div>
+</header>
+
+<div class="tabs" id="mainTabs">
+  <button class="tab active" onclick="switchTab('fragments')">💡 灵感碎片</button>
+  <button class="tab" onclick="switchTab('review')">📋 日拱一卒</button>
+  <button class="tab" onclick="switchTab('report')">📊 周报</button>
+</div>
+
+<!-- ====== 灵感碎片 ====== -->
+<div class="page active" id="page-fragments">
+  <div class="card">
+    <h2>刚刚什么触动了我？</h2>
+    <div class="desc">你今天的困惑，就是你明天的内容</div>
+    <div class="form-group">
+      <label>这个瞬间是</label>
+      <div class="tag-row">
+        <button class="tag-btn kunhuo sel" id="fragTagKunhuo" onclick="setFragTag('kunhuo')">困惑</button>
+        <button class="tag-btn guandian" id="fragTagGuandian" onclick="setFragTag('guandian')">观点</button>
+        <button class="tag-btn sucai" id="fragTagSucai" onclick="setFragTag('sucai')">素材</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <textarea id="fragText" placeholder="直接写，不用修饰——比如：为什么很多人明明想改变却不敢开始？"></textarea>
+    </div>
+    <div class="form-group">
+      <input type="text" id="fragSource" placeholder="来自哪里（选填）：一本书、一个视频、一次聊天">
+    </div>
+    <button class="btn btn-primary" onclick="saveFragment()">存为原料</button>
+  </div>
+
+  <div class="mini-stats">
+    <div class="mini-stat">
+      <div class="num kunhuo" id="statKunhuo">0</div><div class="lbl">困惑</div>
+    </div>
+    <div class="mini-stat">
+      <div class="num guandian" id="statGuandian">0</div><div class="lbl">观点</div>
+    </div>
+    <div class="mini-stat">
+      <div class="num sucai" id="statSucai">0</div><div class="lbl">素材</div>
+    </div>
+  </div>
+
+  <div id="fragList"><div class="empty"><div class="icon">💡</div>还没有碎片，去写第一条吧</div></div>
+</div>
+
+<!-- ====== 日拱一卒 ====== -->
+<div class="page" id="page-review">
+  <div class="card">
+    <h2>一问 · 今天做了什么</h2>
+    <div class="desc">有效动作，继续做</div>
+    <div class="form-group">
+      <label>作品标题</label>
+      <input type="text" id="rvTitle" placeholder="比如：Day3 Claude">
+    </div>
+    <div class="form-group">
+      <label>核心话题 / 钩子</label>
+      <textarea id="rvHook" placeholder="开头用了什么钩子？"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>二问 · 数据告诉了我什么</h2>
+    <div class="desc">数据是体检报告，不是成绩单</div>
+    <div class="form-group">
+      <label>播放 / 点赞 / 评论 / 收藏</label>
+      <input type="text" id="rvData" placeholder="比如：205播放 3赞 2评论 1收藏">
+    </div>
+    <div class="form-group">
+      <label>数据给你的感觉</label>
+      <input type="text" id="rvMood" placeholder="比昨天好 / 差不多 / 不如昨天 / 很差但没关系">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>三问 · 比昨天强了吗</h2>
+    <div class="desc">复盘的目的：对的事延续，错的事停掉</div>
+    <div class="form-group">
+      <label>有效动作 <span class="hint">继续做</span></label>
+      <textarea id="rvGood" placeholder="今天做对了什么？"></textarea>
+    </div>
+    <div class="form-group">
+      <label>无效动作 <span class="hint">停止做</span></label>
+      <textarea id="rvBad" placeholder="今天什么该停掉？"></textarea>
+    </div>
+    <div class="form-group">
+      <label>学到了什么 / 明天目标</label>
+      <textarea id="rvLearn" placeholder="哪怕一点点进步"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="saveReview()">保存今日复盘</button>
+  </div>
+</div>
+
+<!-- ====== 周报 ====== -->
+<div class="page" id="page-report">
+  <div class="card">
+    <h2>本周概览</h2>
+    <div class="desc" id="reportWeekRange"></div>
+    <div class="mini-stats">
+      <div class="mini-stat">
+        <div class="num kunhuo" id="rpFrags">0</div><div class="lbl">本周碎片</div>
+      </div>
+      <div class="mini-stat">
+        <div class="num green" id="rpReviews">0</div><div class="lbl">本周复盘</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="report-block" id="reportContent">
+    <div class="empty"><div class="icon">📊</div>还没有足够的数据</div>
+  </div>
+
+  <button class="btn btn-green" onclick="exportReport()" style="margin-top:8px">导出周报文本</button>
+  <textarea class="export-box" id="exportBox" readonly></textarea>
+  <button class="btn btn-ghost" onclick="copyExport()" id="btnCopy" style="display:none">复制到剪贴板</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== DATA =====
+const FRAG_KEY = 'mumu_fragments';
+const REVIEW_KEY = 'mumu_reviews';
+let fragTag = 'kunhuo';
+
+function getItems(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch(e) { return []; } }
+function saveItems(key, arr) { localStorage.setItem(key, JSON.stringify(arr)); }
+
+// ===== FRAGMENTS =====
+function setFragTag(t) {
+  fragTag = t;
+  ['Kunhuo','Guandian','Sucai'].forEach(k => {
+    const btn = document.getElementById('fragTag'+k);
+    btn.className = 'tag-btn ' + k.toLowerCase() + (k.toLowerCase()===t ? ' sel' : '');
+  });
+}
+
+function saveFragment() {
+  const text = document.getElementById('fragText').value.trim();
+  if (!text) { toast('写下点什么再存吧~'); return; }
+  const f = { id:Date.now(), tag:fragTag, text, source:document.getElementById('fragSource').value.trim(), time:new Date().toISOString() };
+  let arr = getItems(FRAG_KEY);
+  arr.unshift(f);
+  saveItems(FRAG_KEY, arr);
+  document.getElementById('fragText').value = '';
+  document.getElementById('fragSource').value = '';
+  renderFragments();
+  toast('存好了！');
+}
+
+function renderFragments() {
+  const arr = getItems(FRAG_KEY);
+  ['Kunhuo','Guandian','Sucai'].forEach((k,i) => {
+    const tags = ['kunhuo','guandian','sucai'];
+    document.getElementById('stat'+k).textContent = arr.filter(f=>f.tag===tags[i]).length;
+  });
+  const container = document.getElementById('fragList');
+  if (!arr.length) {
+    container.innerHTML = '<div class="empty"><div class="icon">💡</div>还没有碎片，去写第一条吧</div>';
+    return;
+  }
+  const labels = {kunhuo:'困惑',guandian:'观点',sucai:'素材'};
+  container.innerHTML = arr.slice(0,30).map(f => `
+    <div class="item" style="position:relative">
+      <span class="item-tag ${f.tag}">${labels[f.tag]}</span>
+      <span style="position:absolute;top:12px;right:14px;font-size:16px;color:var(--muted);cursor:pointer" onclick="delFrag(${f.id})">×</span>
+      <div class="item-text">${esc(f.text)}</div>
+      <div class="item-meta">${fmtTime(f.time)} ${f.source ? '· '+esc(f.source) : ''}</div>
+    </div>
+  `).join('');
+}
+
+function delFrag(id) {
+  if (!confirm('删除这条碎片？')) return;
+  let arr = getItems(FRAG_KEY);
+  arr = arr.filter(f => f.id !== id);
+  saveItems(FRAG_KEY, arr);
+  renderFragments();
+}
+
+// ===== REVIEW =====
+function saveReview() {
+  const today = new Date().toISOString().slice(0,10);
+  const data = {
+    date: today,
+    title: document.getElementById('rvTitle').value.trim(),
+    hook: document.getElementById('rvHook').value.trim(),
+    rvData: document.getElementById('rvData').value.trim(),
+    mood: document.getElementById('rvMood').value.trim(),
+    good: document.getElementById('rvGood').value.trim(),
+    bad: document.getElementById('rvBad').value.trim(),
+    learn: document.getElementById('rvLearn').value.trim(),
+  };
+  if (!data.title && !data.good) { toast('至少填个标题或有效动作吧~'); return; }
+
+  let arr = getItems(REVIEW_KEY);
+  const idx = arr.findIndex(r => r.date === today);
+  if (idx >= 0) arr[idx] = data;
+  else arr.push(data);
+  arr.sort((a,b) => b.date.localeCompare(a.date));
+  saveItems(REVIEW_KEY, arr);
+  ['rvTitle','rvHook','rvData','rvMood','rvGood','rvBad','rvLearn'].forEach(id => document.getElementById(id).value='');
+  toast('今日复盘已保存！');
+}
+
+// ===== REPORT =====
+function getWeekRange() {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = day === 0 ? 6 : day - 1; // Monday start
+  const mon = new Date(now);
+  mon.setDate(now.getDate() - diff);
+  const sun = new Date(mon);
+  sun.setDate(mon.getDate() + 6);
+  const fmt = d => `${d.getMonth()+1}月${d.getDate()}日`;
+  return { mon, sun, label: `${fmt(mon)} - ${fmt(sun)}` };
+}
+
+function genReport() {
+  const range = getWeekRange();
+  document.getElementById('reportWeekRange').textContent = range.label;
+
+  const frags = getItems(FRAG_KEY).filter(f => {
+    const d = new Date(f.time);
+    return d >= range.mon && d <= new Date(range.sun.getTime()+86400000);
+  });
+  const reviews = getItems(REVIEW_KEY).filter(r => {
+    const d = new Date(r.date);
+    return d >= range.mon.toISOString().slice(0,10) && d <= range.sun.toISOString().slice(0,10);
+  });
+
+  document.getElementById('rpFrags').textContent = frags.length;
+  document.getElementById('rpReviews').textContent = reviews.length;
+
+  const container = document.getElementById('reportContent');
+  if (!frags.length && !reviews.length) {
+    container.innerHTML = '<div class="empty"><div class="icon">📊</div>本周还没有数据</div>';
+    document.getElementById('exportBox').classList.remove('show');
+    document.getElementById('btnCopy').style.display = 'none';
+    return;
+  }
+
+  const k = frags.filter(f=>f.tag==='kunhuo').length;
+  const g = frags.filter(f=>f.tag==='guandian').length;
+  const s = frags.filter(f=>f.tag==='sucai').length;
+
+  let html = '<h3>💡 灵感碎片</h3>';
+  html += `<div class="line">本周共记录 <b>${frags.length}</b> 条碎片：困惑 ${k} 条 · 观点 ${g} 条 · 素材 ${s} 条</div>`;
+  if (frags.length) {
+    html += '<div style="margin-top:6px">';
+    frags.slice(0,5).forEach(f => {
+      const labels = {kunhuo:'困惑',guandian:'观点',sucai:'素材'};
+      html += `<div style="font-size:12px;color:var(--muted);margin-bottom:2px">· ${labels[f.tag]}：${esc(f.text).substring(0,40)}${f.text.length>40?'...':''}</div>`;
+    });
+    html += '</div>';
+  }
+
+  html += '<h3 style="margin-top:12px">📋 日拱一卒</h3>';
+  html += `<div class="line">本周复盘 <b>${reviews.length}</b> 天</div>`;
+  if (reviews.length) {
+    const goods = reviews.map(r=>r.good).filter(Boolean);
+    const bads = reviews.map(r=>r.bad).filter(Boolean);
+    html += `<div class="line"><span>有效动作：</span>${goods.length ? goods.join('；') : '无记录'}</div>`;
+    html += `<div class="line"><span>无效动作：</span>${bads.length ? bads.join('；') : '无记录'}</div>`;
+    html += `<div class="line"><span>数据趋势：</span>${reviews.map(r=>r.rvData||'-').join(' → ')}</div>`;
+  }
+
+  container.innerHTML = html;
+
+  // Build export text
+  let exp = `木木周报 · ${range.label}\n\n`;
+  exp += `灵感碎片：${frags.length} 条（困惑 ${k} · 观点 ${g} · 素材 ${s}）\n`;
+  frags.forEach(f => {
+    const labels = {kunhuo:'困惑',guandian:'观点',sucai:'素材'};
+    exp += `  - [${labels[f.tag]}] ${f.text}\n`;
+  });
+  exp += `\n`;
+  exp += `日拱一卒：复盘 ${reviews.length} 天\n`;
+  reviews.forEach(r => {
+    exp += `  ${r.date}\n`;
+    if (r.title) exp += `  作品：${r.title}\n`;
+    if (r.rvData) exp += `  数据：${r.rvData}\n`;
+    if (r.good) exp += `  有效动作：${r.good}\n`;
+    if (r.bad) exp += `  无效动作：${r.bad}\n`;
+    if (r.learn) exp += `  学到：${r.learn}\n`;
+    exp += `\n`;
+  });
+  exp += `---\n将此周报发给大洛（或任何AI），获取深度分析建议。`;
+  document.getElementById('exportBox').value = exp;
+  document.getElementById('exportBox').classList.add('show');
+  document.getElementById('btnCopy').style.display = 'flex';
+}
+
+function exportReport() {
+  genReport();
+  setTimeout(() => {
+    const box = document.getElementById('exportBox');
+    box.scrollIntoView({behavior:'smooth'});
+    box.select();
+    document.execCommand('copy');
+    toast('周报已复制，发给大洛帮你分析吧~');
+  }, 100);
+}
+
+function copyExport() {
+  const box = document.getElementById('exportBox');
+  box.select();
+  document.execCommand('copy');
+  toast('已复制！');
+}
+
+// ===== NAV =====
+function switchTab(name) {
+  document.querySelectorAll('#mainTabs .tab').forEach((t,i) => {
+    t.classList.toggle('active', ['fragments','review','report'][i] === name);
+  });
+  ['fragments','review','report'].forEach(n => {
+    document.getElementById('page-'+n).classList.toggle('active', n === name);
+  });
+  if (name === 'fragments') renderFragments();
+  if (name === 'report') genReport();
+}
+
+// ===== UTILS =====
+function fmtTime(iso) {
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = now - d;
+  if (diff < 60000) return '刚刚';
+  if (diff < 3600000) return Math.floor(diff/60000)+'分钟前';
+  if (diff < 86400000) return Math.floor(diff/3600000)+'小时前';
+  const week = ['日','一','二','三','四','五','六'];
+  return `${d.getMonth()+1}月${d.getDate()}日 周${week[d.getDay()]}`;
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 1800);
+}
+
+// ===== INIT =====
+renderFragments();
+</script>
+</body>
+</html>
