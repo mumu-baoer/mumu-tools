@@ -198,6 +198,18 @@
 </head>
 <body>
 
+<!-- 密码锁 -->
+<div id="lockScreen" style="position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px">
+  <div style="text-align:center;max-width:320px">
+    <div style="font-size:48px;margin-bottom:12px">🛠️</div>
+    <h2 style="font-size:22px;font-weight:700;color:var(--accent);margin-bottom:4px">木木工具箱</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:24px">灵感碎片 · 日拱一卒</p>
+    <input type="password" id="lockPwd" placeholder="输入密码" style="width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:12px;font-size:16px;text-align:center;background:var(--card);color:var(--text);font-family:inherit;margin-bottom:12px;-webkit-appearance:none" autofocus>
+    <button onclick="unlock()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit">进入</button>
+    <p id="lockError" style="font-size:12px;color:#c7512e;margin-top:8px;display:none">密码不对哦</p>
+  </div>
+</div>
+
 <header>
   <h1>木木工具箱</h1>
   <div class="sub">灵感碎片 · 日拱一卒</div>
@@ -320,6 +332,24 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ===== PASSWORD LOCK =====
+const PASSWORDS = ['mumu2025'];
+
+function unlock() {
+  const input = document.getElementById('lockPwd').value.trim();
+  if (PASSWORDS.includes(input)) {
+    localStorage.setItem('mumu_unlocked', '1');
+    document.getElementById('lockScreen').style.display = 'none';
+  } else {
+    document.getElementById('lockError').style.display = 'block';
+  }
+}
+
+// Auto-unlock if already entered before
+if (localStorage.getItem('mumu_unlocked') === '1') {
+  document.getElementById('lockScreen').style.display = 'none';
+}
+
 // ===== DATA =====
 const FRAG_KEY = 'mumu_fragments';
 const REVIEW_KEY = 'mumu_reviews';
