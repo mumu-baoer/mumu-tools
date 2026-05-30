@@ -102,13 +102,13 @@
 
   .tag-row { display: flex; gap: 6px; }
   .tag-btn {
-    flex: 1; padding: 8px 0; border-radius: 20px; border: 1px solid var(--border);
-    background: var(--card); font-size: 13px; cursor: pointer; text-align: center;
-    font-family: inherit; color: var(--muted);
+    flex: 1; padding: 10px 0; border-radius: 20px; border: 2px solid var(--border);
+    background: var(--card); font-size: 14px; cursor: pointer; text-align: center;
+    font-family: inherit; color: var(--muted); transition: all 0.2s;
   }
-  .tag-btn.kunhuo.sel { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 600; }
-  .tag-btn.guandian.sel { background: var(--purple-soft); color: var(--purple); border-color: var(--purple); font-weight: 600; }
-  .tag-btn.sucai.sel { background: var(--blue-soft); color: var(--blue); border-color: var(--blue); font-weight: 600; }
+  .tag-btn.kunhuo.sel { background: #c7512e; color: #fff; border-color: #c7512e; font-weight: 700; }
+  .tag-btn.guandian.sel { background: #7c5cbf; color: #fff; border-color: #7c5cbf; font-weight: 700; }
+  .tag-btn.sucai.sel { background: #4a8fb5; color: #fff; border-color: #4a8fb5; font-weight: 700; }
 
   .btn {
     display: flex; align-items: center; justify-content: center;
@@ -365,6 +365,9 @@ function setFragTag(t) {
     const btn = document.getElementById('fragTag'+k);
     btn.className = 'tag-btn ' + k.toLowerCase() + (k.toLowerCase()===t ? ' sel' : '');
   });
+  // 同步更新输入框提示
+  const hints = {kunhuo:'是什么事让我产生了困惑？我到底在纠结什么？',guandian:'原来我怎么想？现在我发现了什么不一样？',sucai:'记录一个触动我的瞬间——一句话、一个画面、一个想法'};
+  document.getElementById('fragText').placeholder = hints[t];
 }
 
 function saveFragment() {
