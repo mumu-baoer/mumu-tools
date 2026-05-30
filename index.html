@@ -313,15 +313,19 @@
 <!-- ====== 周报 ====== -->
 <div class="page" id="page-report">
   <div class="card">
-    <h2>本周概览</h2>
+    <h2 id="reportTitle">本周概览</h2>
     <div class="desc" id="reportWeekRange"></div>
     <div class="mini-stats">
       <div class="mini-stat">
-        <div class="num kunhuo" id="rpFrags">0</div><div class="lbl">本周碎片</div>
+        <div class="num kunhuo" id="rpFrags">0</div><div class="lbl">碎片</div>
       </div>
       <div class="mini-stat">
-        <div class="num green" id="rpReviews">0</div><div class="lbl">本周复盘</div>
+        <div class="num green" id="rpReviews">0</div><div class="lbl">复盘天数</div>
       </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <button class="btn btn-ghost btn-sm" id="rpBtnWeek" onclick="setReportMode('week')" style="font-weight:600;flex:1">本周</button>
+      <button class="btn btn-ghost btn-sm" id="rpBtnMonth" onclick="setReportMode('month')" style="flex:1">本月</button>
     </div>
   </div>
 
@@ -329,7 +333,13 @@
     <div class="empty"><div class="icon">📊</div>还没有足够的数据</div>
   </div>
 
-  <button class="btn btn-green" onclick="exportReport()" style="margin-top:8px">导出周报文本</button>
+  <div class="report-block" id="wordCloud" style="display:none">
+    <h3>🔑 高频词</h3>
+    <div class="desc">你最近反复在想的关键词</div>
+    <div id="wordCloudContent" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+  </div>
+
+  <button class="btn btn-green" onclick="exportReport()" style="margin-top:8px">导出报告文本</button>
   <textarea class="export-box" id="exportBox" readonly></textarea>
   <button class="btn btn-ghost" onclick="copyExport()" id="btnCopy" style="display:none">复制到剪贴板</button>
 </div>
@@ -466,6 +476,51 @@ function renderReviewHistory() {
 }
 
 // ===== REPORT =====
+let reportMode = 'week';
+
+function setReportMode(mode) {
+  reportMode = mode;
+  document.getElementById('rpBtnWeek').style.fontWeight = mode==='week' ? '600' : '400';
+  document.getElementById('rpBtnMonth').style.fontWeight = mode==='month' ? '600' : '400';
+  document.getElementById('reportTitle').textContent = mode==='week' ? '本周概览' : '本月概览';
+  genReport();
+}
+
+function getDateRange() {
+  const now = new Date();
+  if (reportMode === 'week') {
+    const day = now.getDay();
+    const diff = day === 0 ? 6 : day - 1;
+    const mon = new Date(now); mon.setDate(now.getDate() - diff);
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    const fmt = d => `${d.getMonth()+1}月${d.getDate()}日`;
+    return { start: mon, end: new Date(sun.getTime()+86400000), label: `${fmt(mon)} - ${fmt(sun)}` };
+  } else {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59);
+    const fmt = d => `${d.getMonth()+1}月${d.getDate()}日`;
+    return { start, end, label: `${fmt(start)} - ${fmt(end)}` };
+  }
+}
+
+// Simple Chinese word extraction
+function extractWords(texts) {
+  const stopWords = new Set(['的','了','是','我','在','有','也','和','就','不','人','都','去','一个','这个','那个','什么','怎么','为什么','因为','所以','但是','如果','可以','没有','自己','知道','觉得','今天','昨天','明天','现在','还是','或者','已经','比较','非常','特别','一点','一些','一下','一样','这种','那种']);
+  const wordCount = {};
+  texts.forEach(t => {
+    // Extract 2-3 char chunks
+    for (let i = 0; i < t.length - 1; i++) {
+      for (let len = 2; len <= 3 && i + len <= t.length; len++) {
+        const w = t.substring(i, i + len);
+        if (/^[一-龥]+$/.test(w) && !stopWords.has(w) && w.length >= 2) {
+          wordCount[w] = (wordCount[w] || 0) + 1;
+        }
+      }
+    }
+  });
+  return Object.entries(wordCount).sort((a,b) => b[1]-a[1]).slice(0, 20);
+}
+
 function getWeekRange() {
   const now = new Date();
   const day = now.getDay();
@@ -479,16 +534,16 @@ function getWeekRange() {
 }
 
 function genReport() {
-  const range = getWeekRange();
+  const range = getDateRange();
   document.getElementById('reportWeekRange').textContent = range.label;
 
   const frags = getItems(FRAG_KEY).filter(f => {
     const d = new Date(f.time);
-    return d >= range.mon && d <= new Date(range.sun.getTime()+86400000);
+    return d >= range.start && d <= range.end;
   });
   const reviews = getItems(REVIEW_KEY).filter(r => {
     const d = new Date(r.date);
-    return d >= range.mon.toISOString().slice(0,10) && d <= range.sun.toISOString().slice(0,10);
+    return d >= range.start.toISOString().slice(0,10) && d <= range.end.toISOString().slice(0,10);
   });
 
   document.getElementById('rpFrags').textContent = frags.length;
@@ -518,26 +573,45 @@ function genReport() {
   }
 
   html += '<h3 style="margin-top:12px">📋 日拱一卒</h3>';
-  html += `<div class="line">本周复盘 <b>${reviews.length}</b> 天</div>`;
-  if (reviews.length) {
-    const goods = reviews.map(r=>r.good).filter(Boolean);
-    const bads = reviews.map(r=>r.bad).filter(Boolean);
-    html += `<div class="line"><span>有效动作：</span>${goods.length ? goods.join('；') : '无记录'}</div>`;
-    html += `<div class="line"><span>无效动作：</span>${bads.length ? bads.join('；') : '无记录'}</div>`;
-    html += `<div class="line"><span>数据趋势：</span>${reviews.map(r=>r.rvData||'-').join(' → ')}</div>`;
+  html += `<div class="line">复盘 <b>${reviews.length}</b> 天</div>`;
+  const goods = reviews.map(r=>r.good).filter(Boolean);
+  const bads = reviews.map(r=>r.bad).filter(Boolean);
+  html += `<div class="line"><span>✅ 有效动作 ${goods.length} 次：</span>${goods.length ? goods.join('；') : '无记录'}</div>`;
+  html += `<div class="line"><span>❌ 无效动作 ${bads.length} 次：</span>${bads.length ? bads.join('；') : '无记录'}</div>`;
+  html += `<div class="line"><span>数据趋势：</span>${reviews.map(r=>r.rvData||'-').join(' → ')}</div>`;
   }
 
   container.innerHTML = html;
 
+  // Word cloud
+  const allTexts = frags.map(f=>f.text).concat(reviews.flatMap(r=>[r.good,r.bad,r.learn,r.rvData,r.hook].filter(Boolean)));
+  const words = extractWords(allTexts);
+  const wcDiv = document.getElementById('wordCloud');
+  const wcContent = document.getElementById('wordCloudContent');
+  if (words.length) {
+    wcDiv.style.display = 'block';
+    const maxCount = words[0][1];
+    wcContent.innerHTML = words.map(([w,c]) => {
+      const size = 12 + Math.round((c/maxCount) * 16);
+      const alpha = 0.5 + (c/maxCount) * 0.5;
+      const colors = ['#c7512e','#7c5cbf','#4a8fb5','#5a8f6b'];
+      const color = colors[Math.floor(Math.random()*colors.length)];
+      return `<span style="font-size:${size}px;font-weight:${c>maxCount*0.5?700:400};color:${color};opacity:${alpha};padding:2px 4px">${w}</span>`;
+    }).join('');
+  } else {
+    wcDiv.style.display = 'none';
+  }
+
   // Build export text
-  let exp = `木木周报 · ${range.label}\n\n`;
+  const periodName = reportMode === 'week' ? '周报' : '月报';
+  let exp = `木木${periodName} · ${range.label}\n\n`;
   exp += `灵感碎片：${frags.length} 条（困惑 ${k} · 观点 ${g} · 素材 ${s}）\n`;
   frags.forEach(f => {
     const labels = {kunhuo:'困惑',guandian:'观点',sucai:'素材'};
     exp += `  - [${labels[f.tag]}] ${f.text}\n`;
   });
   exp += `\n`;
-  exp += `日拱一卒：复盘 ${reviews.length} 天\n`;
+  exp += `日拱一卒：复盘 ${reviews.length} 天 | 有效动作 ${goods.length} 次 | 无效动作 ${bads.length} 次\n`;
   reviews.forEach(r => {
     exp += `  ${r.date}\n`;
     if (r.title) exp += `  作品：${r.title}\n`;
@@ -547,7 +621,8 @@ function genReport() {
     if (r.learn) exp += `  学到：${r.learn}\n`;
     exp += `\n`;
   });
-  exp += `---\n将此周报发给大洛（或任何AI），获取深度分析建议。`;
+  exp += `高频词：${words.slice(0,10).map(([w,c])=>`${w}(${c})`).join(' ')}\n\n`;
+  exp += `---\n将这封${periodName}发给大洛（或任何AI），获取深度分析建议。`;
   document.getElementById('exportBox').value = exp;
   document.getElementById('exportBox').classList.add('show');
   document.getElementById('btnCopy').style.display = 'flex';
