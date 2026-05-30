@@ -260,6 +260,11 @@
 
 <!-- ====== 日拱一卒 ====== -->
 <div class="page" id="page-review">
+  <div class="card" id="yesterdayCard" style="background:var(--green-soft);display:none">
+    <h2 style="color:var(--green)">📌 昨日回顾</h2>
+    <div class="desc" id="yesterdayContent" style="color:var(--green)"></div>
+  </div>
+
   <div class="card">
     <h2>一问 · 今天做了什么</h2>
     <div class="desc">有效动作，继续做</div>
@@ -452,6 +457,26 @@ function saveReview() {
   ['rvTitle','rvHook','rvData','rvMood','rvGood','rvBad','rvLearn'].forEach(id => document.getElementById(id).value='');
   toast('今日复盘已保存！');
   renderReviewHistory();
+}
+
+function showYesterday() {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yd = yesterday.toISOString().slice(0, 10);
+  const review = getItems(REVIEW_KEY).find(r => r.date === yd);
+  const card = document.getElementById('yesterdayCard');
+  const content = document.getElementById('yesterdayContent');
+  if (review) {
+    card.style.display = 'block';
+    let html = `<b>${yd}</b>`;
+    if (review.title) html += ` · ${esc(review.title)}`;
+    if (review.rvData) html += `<br>数据：${esc(review.rvData)}`;
+    if (review.good) html += `<br>✅ ${esc(review.good)}`;
+    if (review.learn) html += `<br>💡 ${esc(review.learn)}`;
+    content.innerHTML = html;
+  } else {
+    card.style.display = 'none';
+  }
 }
 
 function renderReviewHistory() {
@@ -664,7 +689,7 @@ function switchTab(name) {
     document.getElementById('page-'+n).classList.toggle('active', n === name);
   });
   if (name === 'fragments') renderFragments();
-  if (name === 'review') renderReviewHistory();
+  if (name === 'review') { renderReviewHistory(); showYesterday(); }
   if (name === 'report') genReport();
 }
 
