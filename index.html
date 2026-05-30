@@ -462,8 +462,9 @@ function renderReviewHistory() {
     return;
   }
   container.innerHTML = reviews.slice(0, 20).map(r => `
-    <div class="item">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+    <div class="item" style="position:relative">
+      <span style="position:absolute;top:12px;right:14px;font-size:16px;color:var(--muted);cursor:pointer" onclick="deleteReview('${r.date}')">×</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-right:20px">
         <b style="font-size:14px;color:var(--accent)">${esc(r.date)} ${esc(r.title||'(无标题)')}</b>
         <span style="font-size:11px;color:var(--muted)">${esc(r.mood||'')}</span>
       </div>
@@ -473,6 +474,15 @@ function renderReviewHistory() {
       ${r.learn ? '<div style="font-size:12px;margin-bottom:1px">💡 '+esc(r.learn)+'</div>' : ''}
     </div>
   `).join('');
+}
+
+function deleteReview(date) {
+  if (!confirm('确定删除 ' + date + ' 的复盘记录吗？')) return;
+  let reviews = getItems(REVIEW_KEY);
+  reviews = reviews.filter(r => r.date !== date);
+  saveItems(REVIEW_KEY, reviews);
+  renderReviewHistory();
+  toast('已删除');
 }
 
 // ===== REPORT =====
