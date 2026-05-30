@@ -579,7 +579,6 @@ function genReport() {
   html += `<div class="line"><span>✅ 有效动作 ${goods.length} 次：</span>${goods.length ? goods.join('；') : '无记录'}</div>`;
   html += `<div class="line"><span>❌ 无效动作 ${bads.length} 次：</span>${bads.length ? bads.join('；') : '无记录'}</div>`;
   html += `<div class="line"><span>数据趋势：</span>${reviews.map(r=>r.rvData||'-').join(' → ')}</div>`;
-  }
 
   container.innerHTML = html;
 
